@@ -6,7 +6,7 @@ Simple usage
 To enter an environment without cloning this repository you can run:
 
 ```
-nix-shell https://github.com/alpmestan/ghc.nix/archive/master.tar.gz
+nix-shell https://github.com/chessai/ghc.nix/archive/master.tar.gz
 ```
 
 ## Building GHC
