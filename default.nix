@@ -5,7 +5,7 @@
 #   nix-shell path/to/ghc.nix/        --run 'THREADS=4 ./validate --slow'
 #
 { nixpkgs   ? import <nixpkgs> {}
-, bootghc   ? "ghc843"
+, bootghc   ? "ghc844"
 , version   ? "8.7"
 , useClang  ? false  # use Clang for C compilation
 , withLlvm  ? false
@@ -58,7 +58,8 @@ in
 
 stdenv.mkDerivation rec {
   name = "ghc-${version}";
-  buildInputs = [ env arcanist ];
+  buildInputs = [ env arcanist ]
+                ++ stdenv.lib.optionals stdenv.isDarwin [ libiconv ];
   hardeningDisable = [ "fortify" ];
   phases = ["nobuild"];
   postPatch = "patchShebangs .";
@@ -88,9 +89,10 @@ stdenv.mkDerivation rec {
     # somehow, CC gets overriden so we set it again here.
     export CC=${stdenv.cc}/bin/cc
 
-    ${lib.optionalString withDocs "export FONTCONFIG_FILE=${fonts}"}
+    # "nix-shell --pure" resets LANG to POSIX, this breaks "make TAGS".
+    export LANG="en_US.UTF-8"
 
-    # export NIX_LDFLAGS+= " -rpath ${src}/inplace/lib/ghc-${version}"
+    ${lib.optionalString withDocs "export FONTCONFIG_FILE=${fonts}"}
 
     echo Entering a GHC development shell with CFLAGS, CPPFLAGS, LDFLAGS and
     echo LD_LIBRARY_PATH correctly set, to be picked up by ./configure.
@@ -116,7 +118,7 @@ stdenv.mkDerivation rec {
   # Without this, we see a whole bunch of warnings about LANG, LC_ALL and locales in general.
   # In particular, this makes many tests fail because those warnings show up in test outputs too...
   # The solution is from: https://github.com/NixOS/nix/issues/318#issuecomment-52986702
-  LOCALE_ARCHIVES = "${glibcLocales}/lib/locale/locale-archive";
+  LOCALE_ARCHIVE = if stdenv.isLinux then "${glibcLocales}/lib/locale/locale-archive" else "";
 
   nobuild = ''
     echo Do not run this derivation with nix-build, it can only be used with nix-shell
