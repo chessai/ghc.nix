@@ -47,7 +47,8 @@ let
       ++ docsPackages
       ++ stdenv.lib.optional withLlvm llvm_6
       ++ stdenv.lib.optional withNuma numactl
-      ++ stdenv.lib.optional withDwarf elfutils ;
+      ++ stdenv.lib.optional withDwarf elfutils
+      ++ stdenv.lib.optional (! stdenv.isDarwin) pxz ;
 
     env = buildEnv {
       name = "ghc-build-environment";
